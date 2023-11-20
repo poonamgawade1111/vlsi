@@ -1,0 +1,154 @@
+USR CODE:
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+---- Uncomment the following library declaration if instantiating
+---- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity usr is
+    Port (
+        a   : in  STD_LOGIC_VECTOR (3 downto 0);
+        b   : in  STD_LOGIC_VECTOR (1 downto 0);
+        y   : out STD_LOGIC_VECTOR (3 downto 0);
+        clk : in  STD_LOGIC;
+        rst : in  STD_LOGIC
+    );
+end usr;
+
+architecture Behavioral of usr is
+    signal t : std_logic_vector(3 downto 0);
+begin
+    process(clk, rst)
+    begin
+        if rst = '1' then
+            y <= "0000";
+        elsif clk' event and clk = '1' then
+            case b is 
+                when "00" =>
+                    t(3) <= a(0);
+                    t(2) <= t(3);
+                    t(1) <= t(2);
+                    t(0) <= t(1);
+                    y(0) <= t(0);
+
+                when "01" =>
+                    t(3) <= a(0);
+                    t(2) <= t(3);
+                    t(1) <= t(2);
+                    t(0) <= t(1);
+                    y <= t;
+
+                when "10" =>
+                    y <= t;
+
+                when "11" =>
+                    t(2) <= t(3);
+                    t(1) <= t(2);
+                    t(0) <= t(1);
+                    y(3) <= t(0);
+
+                when others =>
+                    null;
+            end case;
+        end if;
+    end process;
+end Behavioral;
+
+
+
+
+
+
+USR TESTBENCH:
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+
+ENTITY shift_tb_vhd IS
+END shift_tb_vhd;
+
+ARCHITECTURE behavior OF shift_tb_vhd IS 
+
+	-- Component Declaration for the Unit Under Test (UUT)
+	COMPONENT usr44
+	PORT(
+		a : IN std_logic_vector(3 downto 0);
+		b : IN std_logic_vector(1 downto 0);
+		clk : IN std_logic;
+		rst : IN std_logic;          
+		y : OUT std_logic_vector(3 downto 0)
+		);
+	END COMPONENT;
+
+	--Inputs
+	SIGNAL clk :  std_logic := '0';
+	SIGNAL rst :  std_logic := '0';
+	SIGNAL a :  std_logic_vector(3 downto 0) := (others=>'0');
+	SIGNAL b :  std_logic_vector(1 downto 0) := (others=>'0');
+
+	--Outputs
+	SIGNAL y :  std_logic_vector(3 downto 0);
+
+BEGIN
+
+	-- Instantiate the Unit Under Test (UUT)
+	uut: usr44 PORT MAP(
+		a => a,
+		b => b,
+		y => y,
+		clk => clk,
+		rst => rst
+	);
+
+	tb : PROCESS
+	BEGIN
+    rst <= '1';
+	wait for 10ns;
+	rst <= '0';
+	b <= "00";
+	a <= "0001";
+	wait for 80ns;
+		a <= "1110";
+	wait for 80ns;
+		a <= "0000";
+	wait for 80ns;
+	
+		b <= "01";
+	a <= "0001";
+	wait for 80ns;
+		a <= "1110";
+	wait for 80ns;
+		a <= "0000";
+	wait for 80ns;
+	
+		b <= "10";
+	a <= "0001";
+	wait for 80ns;
+		a <= "1110";
+	wait for 80ns;
+		a <= "0000";
+	wait for 80ns;
+	
+		b <= "11";
+	a <= "0001";
+	wait for 80ns;
+		a <= "1110";
+	wait for 80ns;
+		a <= "0000";
+	wait for 80ns;
+	
+		-- Wait 100 ns for global reset to finish
+		wait for 100 ns;
+
+		-- Place stimulus here
+
+		wait; -- will wait forever
+	END PROCESS;
+
+END;	

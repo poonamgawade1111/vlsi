@@ -1,0 +1,146 @@
+FIFO CODE:
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+---- Uncomment the following library declaration if instantiating
+---- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity fifo123 is
+    Port ( enr,enw : in  STD_LOGIC;
+           dataout : out  STD_LOGIC_VECTOR (3 downto 0);
+           datain : in  STD_LOGIC_VECTOR (3 downto 0);
+           empty,full : out  STD_LOGIC;
+           clk : in  STD_LOGIC);
+end fifo123;
+
+architecture Behavioral of fifo123 is
+type memory_type is array(0 to 7) of std_logic_vector(3 downto 0);
+signal memory: memory_type;
+signal readptr, writeptr:std_logic_vector(3 downto 0):="0000";
+
+
+begin
+	process(clk)
+	begin 
+	if(clk'event and clk ='1' and enw ='1') then
+	memory(conv_integer(writeptr))<= datain;
+	writeptr<= writeptr +'1';
+	end if;
+	
+	if(clk'event and clk ='1' and enr ='1') then
+	dataout <= memory(conv_integer(readptr));
+	readptr<= readptr +'1';
+	end if;
+	
+	if(readptr= "1000")then
+	empty <='1';
+	else
+	empty<='0';
+	end if;
+	
+	if(writeptr= "1000")then
+	full <='1';
+	writeptr<="0000";
+	else
+	full<='0';
+	end if;
+end process;
+
+end Behavioral;
+
+
+
+FIFO TESTBENCH:
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+
+ENTITY tb_fifo_vhd IS
+END tb_fifo_vhd;
+
+ARCHITECTURE behavior OF tb_fifo_vhd IS 
+
+	-- Component Declaration for the Unit Under Test (UUT)
+	COMPONENT fifo123
+	PORT(
+		enr : IN std_logic;
+		enw : IN std_logic;
+		datain : IN std_logic_vector(3 downto 0);
+		clk : IN std_logic;          
+		dataout : OUT std_logic_vector(3 downto 0);
+		empty : OUT std_logic;
+		full : OUT std_logic
+		);
+	END COMPONENT;
+
+	--Inputs
+	SIGNAL enr :  std_logic := '0';
+	SIGNAL enw :  std_logic := '0';
+	SIGNAL clk :  std_logic := '0';
+	SIGNAL datain :  std_logic_vector(3 downto 0) := (others=>'0');
+
+	--Outputs
+	SIGNAL dataout :  std_logic_vector(3 downto 0);
+	SIGNAL empty :  std_logic;
+	SIGNAL full :  std_logic;
+
+	constant clk_period : time := 10ns;
+	
+BEGIN
+
+	-- Instantiate the Unit Under Test (UUT)
+	uut: fifo123 PORT MAP(
+		enr => enr,
+		enw => enw,
+		dataout => dataout,
+		datain => datain,
+		empty => empty,
+		full => full,
+		clk => clk
+	);
+   clk_process: process
+	begin
+	   clk <= '0';
+		wait for clk_period/2;
+		clk <= '1';
+		wait for clk_period/2;
+	end process;
+	
+	tb : PROCESS
+	BEGIN
+		
+		enw <= '1';
+		datain <= "1110";
+		wait for 10 ns;
+		datain <= "1100";
+		wait for 10 ns;
+		datain <= "1000";
+		wait for 10 ns;
+		datain <= "0000";
+		wait for 10 ns;
+		datain <= "1111";
+		wait for 10 ns;
+		datain <= "0100";
+		wait for 10 ns;
+		datain <= "0110";
+		wait for 10 ns;
+		datain <= "0011";
+		enw <= '0';
+		wait for 10 ns;
+      enr <= '1';		
+		-- Wait 100 ns for global reset to finish
+		
+
+		-- Place stimulus here
+
+		wait; -- will wait forever
+	END PROCESS;
+
+END;
